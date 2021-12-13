@@ -6,16 +6,19 @@
 #define MAX_SIZE 20
 #define IS_ODD(val) ((val) & 0x1)
 
-#define SWAP(a, b) ({   \
-    if ((a) != (b)) {   \
-        (a) = (a)^(b);  \
-        (b) = (a)^(b);  \
-        (a) = (a)^(b);  \
-    }                   \
+#define SWAP_PTR(a, b) ({     \
+    typeof((a)) tmp;            \
+    tmp = (a);                  \
+    (a) = (b);                  \
+    (b) = tmp;                  \
 })
 
+typedef struct __node {
+    int val;
+} Node;
+
 typedef struct __bheap {
-    int arr[MAX_SIZE];
+    Node *arr[MAX_SIZE];
     int len;
 } Bheap;
 
@@ -34,7 +37,7 @@ void bheap_show(Bheap *bheap)
     for (int i=0; i<depth; i++) {
         for (int j=0; j<(1<<i); j++) {
             if ((1<<i)+j-1 < bheap->len) {
-                printf("%d, ", bheap->arr[(1<<i)+j-1]);
+                printf("%d, ", bheap->arr[(1<<i)+j-1]->val);
             } else {
                 break;
             }
@@ -59,8 +62,8 @@ static void bheap_bottomup(Bheap *bheap)
             parent_idx = (curr_idx-2) >> 1;
         }
 
-        if (bheap->arr[parent_idx] < bheap->arr[curr_idx]) {
-            SWAP(bheap->arr[parent_idx], bheap->arr[curr_idx]);
+        if (bheap->arr[parent_idx]->val < bheap->arr[curr_idx]->val) {
+            SWAP_PTR(bheap->arr[parent_idx], bheap->arr[curr_idx]);
         }
 
         curr_idx = parent_idx;
@@ -70,9 +73,9 @@ static void bheap_bottomup(Bheap *bheap)
 /**
  * append the new value and bubble it up
  */
-void bheap_add(Bheap *bheap, int val)
+void bheap_add(Bheap *bheap, Node *node)
 {
-    bheap->arr[bheap->len++] = val;
+    bheap->arr[bheap->len++] = node;
     bheap_bottomup(bheap);
 }
 
@@ -90,16 +93,16 @@ static void bheap_topdown(Bheap *bheap)
     child2_idx = (curr_idx << 1) + 2;
 
     while (child1_idx < bheap->len || child2_idx < bheap->len) {
-        if (child2_idx < bheap->len && bheap->arr[child2_idx] > bheap->arr[child1_idx]) {
+        if (child2_idx < bheap->len && bheap->arr[child2_idx]->val > bheap->arr[child1_idx]->val) {
             // child2 is max
-            SWAP(bheap->arr[curr_idx], bheap->arr[child2_idx]);
+            SWAP_PTR(bheap->arr[curr_idx], bheap->arr[child2_idx]);
             curr_idx = child2_idx;
             child1_idx = (curr_idx << 1) + 1;
             child2_idx = (curr_idx << 1) + 2;
 
-        } else if (bheap->arr[child1_idx] > bheap->arr[curr_idx]) {
+        } else if (bheap->arr[child1_idx]->val > bheap->arr[curr_idx]->val) {
             // child1 is max
-            SWAP(bheap->arr[curr_idx], bheap->arr[child1_idx]);
+            SWAP_PTR(bheap->arr[curr_idx], bheap->arr[child1_idx]);
             curr_idx = child1_idx;
             child1_idx = (curr_idx << 1) + 1;
             child2_idx = (curr_idx << 1) + 2;
@@ -114,11 +117,11 @@ static void bheap_topdown(Bheap *bheap)
 /**
  * move the tail to the top and do beheap topdown
  */
-int bheap_pop(Bheap *bheap)
+Node* bheap_pop(Bheap *bheap)
 {
-    if (!bheap || !bheap->len) return -1;
+    if (!bheap || !bheap->len) return NULL;
 
-    int ret = bheap->arr[0];
+    Node *ret = bheap->arr[0];
     bheap->arr[0] = bheap->arr[bheap->len-1];
     bheap->len --;
 
@@ -146,16 +149,21 @@ int main (int argc, char *argv[])
     bheap->len = 0;
 
     /* init bheap and store to arr_pre */
+    Node *node;
     for (int i=0; i<len; i++) {
         arr_pre[i] = (rand() % 100 + 1);
-        bheap_add(bheap, arr_pre[i]);
+        node = (Node*) malloc(sizeof(Node));
+        node->val = arr_pre[i];
+        bheap_add(bheap, node);
     }
     bheap_show(bheap);
 
     /* pop the bheap and store to arr_post */
     for (int i=0; bheap->len; i++) {
         printf("=================\n");
-        arr_post[i] = bheap_pop(bheap);
+        node = bheap_pop(bheap);
+        arr_post[i] = node->val;
+        free(node);
         printf("pop: %d\n", arr_post[i]);
         bheap_show(bheap);
     }
