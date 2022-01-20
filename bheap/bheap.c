@@ -1,3 +1,14 @@
+/*
+ * Binary heap sorting is a sorting method.
+ * It use array to store a binary tree, and always keeps the top node as the Max/Min node.
+ * 
+ * When adding new node, the new node will be appened to the tail,
+ * and call bheap_bottomup() to bubble it up to the right place.
+ *
+ * When taking out the top node, it will call bheap_topdown() to resort
+ * the bheap again.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -47,7 +58,8 @@ void bheap_show(Bheap *bheap)
 }
 
 /**
- * bubble the tail up to the right place
+ * Bubble the tail up to the right place by continuing to swap with the parent
+ * if it is larger
  */
 static void bheap_bottomup(Bheap *bheap)
 {
@@ -71,7 +83,8 @@ static void bheap_bottomup(Bheap *bheap)
 }
 
 /**
- * append the new value and bubble it up
+ * API
+ * Append the new value and bubble it up
  */
 void bheap_add(Bheap *bheap, Node *node)
 {
@@ -80,32 +93,31 @@ void bheap_add(Bheap *bheap, Node *node)
 }
 
 /**
- * compare parent with children
- * exchange if one of the children is larger
+ * Compare parent with children and exchange if one of the children is larger
  */
 static void bheap_topdown(Bheap *bheap)
 {
     if (!bheap || !bheap->len) return;
 
     int curr_idx = 0;
-    int child1_idx, child2_idx;
-    child1_idx = (curr_idx << 1) + 1;
-    child2_idx = (curr_idx << 1) + 2;
+    int lchild_idx, rchild_idx;
+    lchild_idx = (curr_idx << 1) + 1;
+    rchild_idx = (curr_idx << 1) + 2;
 
-    while (child1_idx < bheap->len || child2_idx < bheap->len) {
-        if (child2_idx < bheap->len && bheap->arr[child2_idx]->val > bheap->arr[child1_idx]->val) {
-            // child2 is max
-            SWAP_PTR(bheap->arr[curr_idx], bheap->arr[child2_idx]);
-            curr_idx = child2_idx;
-            child1_idx = (curr_idx << 1) + 1;
-            child2_idx = (curr_idx << 1) + 2;
+    while (lchild_idx < bheap->len || rchild_idx < bheap->len) {
+        if (rchild_idx < bheap->len && bheap->arr[rchild_idx]->val > bheap->arr[lchild_idx]->val) {
+            // rchild is max
+            SWAP_PTR(bheap->arr[curr_idx], bheap->arr[rchild_idx]);
+            curr_idx = rchild_idx;
+            lchild_idx = (curr_idx << 1) + 1;
+            rchild_idx = (curr_idx << 1) + 2;
 
-        } else if (bheap->arr[child1_idx]->val > bheap->arr[curr_idx]->val) {
-            // child1 is max
-            SWAP_PTR(bheap->arr[curr_idx], bheap->arr[child1_idx]);
-            curr_idx = child1_idx;
-            child1_idx = (curr_idx << 1) + 1;
-            child2_idx = (curr_idx << 1) + 2;
+        } else if (bheap->arr[lchild_idx]->val > bheap->arr[curr_idx]->val) {
+            // lchild is max
+            SWAP_PTR(bheap->arr[curr_idx], bheap->arr[lchild_idx]);
+            curr_idx = lchild_idx;
+            lchild_idx = (curr_idx << 1) + 1;
+            rchild_idx = (curr_idx << 1) + 2;
 
         } else {
             // curr is not smaller than children
@@ -115,7 +127,8 @@ static void bheap_topdown(Bheap *bheap)
 }
 
 /**
- * move the tail to the top and do beheap topdown
+ * API
+ * Return the top and move the tail to the top and do bheap topdown
  */
 Node* bheap_pop(Bheap *bheap)
 {
@@ -129,7 +142,8 @@ Node* bheap_pop(Bheap *bheap)
     return ret;
 }
 
-int main (int argc, char *argv[])
+// argv is the length of array
+int main(int argc, char *argv[])
 {
     srand(time(NULL));
     
