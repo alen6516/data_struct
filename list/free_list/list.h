@@ -14,7 +14,7 @@ list_t* list_init(void* root, void** (node_get_ref_of_next)(void*)) {
     if (!list) {
         return NULL;
     }
-    bzero(list, sizeof(list_t));
+    memset(list, 0, sizeof(list_t));
 
     list->root = root;
     list->next = node_get_ref_of_next(root);
