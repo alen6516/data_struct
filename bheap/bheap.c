@@ -29,9 +29,24 @@ typedef struct __node {
 } Node;
 
 typedef struct __bheap {
-    Node *arr[MAX_SIZE];
+    int arr_size;
     int len;
-} Bheap;
+    Node *arr[0];
+} Bheap;    // need to pack
+
+Bheap *bheap_init()
+{
+    Bheap *bheap = (Bheap*) malloc(sizeof(Bheap)+sizeof(Node*)*MAX_SIZE);
+    if (!bheap)
+        goto fail;
+
+    bheap->arr_size = MAX_SIZE;
+    bheap->len = 0;
+    return bheap;
+
+fail:
+    return NULL;
+}
 
 void bheap_show(Bheap *bheap)
 {
@@ -74,6 +89,7 @@ static void bheap_bottomup(Bheap *bheap)
             parent_idx = (curr_idx-2) >> 1;
         }
 
+        // compare with parent and swap
         if (bheap->arr[parent_idx]->val < bheap->arr[curr_idx]->val) {
             SWAP_PTR(bheap->arr[parent_idx], bheap->arr[curr_idx]);
         }
@@ -159,8 +175,11 @@ int main(int argc, char *argv[])
     int *arr_pre = (int*) malloc(sizeof(int)*len);
     int *arr_post = (int*) malloc(sizeof(int)*len);
 
-    Bheap *bheap = (Bheap*) malloc(sizeof(Bheap));
-    bheap->len = 0;
+    Bheap *bheap = bheap_init();
+    if (!bheap) {
+        printf("fail to allocate bheap\n");
+        return -1;
+    }
 
     /* init bheap and store to arr_pre */
     Node *node;
